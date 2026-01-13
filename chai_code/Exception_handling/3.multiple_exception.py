@@ -1,0 +1,19 @@
+
+
+def process_order(item, quantity):
+    try:
+        price = {"masala": 20}[item]
+        cost = price * quantity
+        cost = price * quantity
+        print(f"Total cost is {cost}")
+    except KeyError:
+        print("Sorry that chai is not on menu")
+    except TypeError:
+        print("Quantity must be in number")
+    
+process_order("ginger", 2)
+process_order("masala", "two")
+
+
+# multiple two two two in output due to operator overloading
+# to fix change price and quantity into integer
