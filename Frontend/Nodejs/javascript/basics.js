@@ -103,3 +103,5 @@ function funName(parameter) {
 
 
 // *? Nested functions
+
+// *? Callback Function
