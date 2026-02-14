@@ -17,7 +17,7 @@ pnpm dev
 
 Create a `.env`:
 ```env
-DATABASE_URL=postgres://postgres:mypassword@localhost:5432/postgres
+DATABASE_URL=postgres://<user_name>:<password>@localhost:5432/postgres
 PORT=8000
 ```
 
@@ -73,6 +73,3 @@ To update password, include `currentPassword`:
 - The `attachUser` middleware runs on every request — if a valid `session-id` header is present, it joins `user_sessions` with `users` and attaches the user to `req.user`
 - Protected routes use `isAuthenticated` middleware which returns 401 if `req.user` is not set
 
-## License
-
-ISC
