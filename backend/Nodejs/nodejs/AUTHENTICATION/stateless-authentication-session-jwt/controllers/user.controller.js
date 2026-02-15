@@ -2,6 +2,9 @@ import db from '../db/index.js';
 import { usersTable, userSession } from '../db/schema.js';
 import argon2 from 'argon2';
 import { eq } from 'drizzle-orm';
+import jwt from 'jsonwebtoken';
+
+
 
 export const signup = async (req, res) => {
     const { name, email, password } = req.body;
@@ -44,18 +47,26 @@ export const login = async (req, res) => {
     //  delete any existing sessions for this user
     await db.delete(userSession).where(eq(userSession.userId, user.id));
 
-    //  creating session here
-    const [session] = await db.insert(userSession).values({
-        userId: user.id,
-    }).returning({ id: userSession.id })
 
-    return res.json({ status: "Login Successfully ", sessionId: session.id });
+    //  creating a payload for json web token
+    const payload = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+    }
+    //  creating jwt token here
+    const token = jwt.sign(payload, process.env.JWT_SECRET)
+
+
+    return res.json({ status: "Login Successfully ", sessionId: token });
 };
 
 
 export const getCurrentUser = async (req, res) => {
     return res.json({ user: req.user });
 };
+
+
 
 
 export const updateUser = async (req, res) => {
