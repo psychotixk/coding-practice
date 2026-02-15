@@ -57,8 +57,7 @@ export const login = async (req, res) => {
     //  creating jwt token here
     const token = jwt.sign(payload, process.env.JWT_SECRET)
 
-
-    return res.json({ status: "Login Successfully ", sessionId: token });
+    return res.json({ status: "Login Successfully ", token: token });
 };
 
 
