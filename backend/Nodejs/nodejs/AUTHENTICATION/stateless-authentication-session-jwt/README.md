@@ -1,75 +1,50 @@
-# Session Based Authentication
+# Stateless Authentication with JWT
 
-Simple backend authentication using session-based auth with Node.js, Express 5, Drizzle ORM, PostgreSQL (Docker), and Argon2 for password hashing.
-
-## Tech Stack
-
-Node.js, Express 5, PostgreSQL, Drizzle ORM, Argon2, Docker, pnpm
+REST API with JWT-based stateless authentication using Express v5, PostgreSQL, Drizzle ORM, and Argon2.
 
 ## Setup
 
 ```bash
 pnpm install
-docker-compose up -d
-npx drizzle-kit push
+docker compose up -d
+pnpm drizzle-kit push
 pnpm dev
 ```
 
-Create a `.env`:
+`.env`:
 ```env
-DATABASE_URL=postgres://<user_name>:<password>@localhost:5432/postgres
-PORT=8000
+DATABASE_URL=postgres://postgres:mypassword@localhost:5432/postgres
+JWT_SECRET=your_secret_here
 ```
 
-## API Endpoints
+## API
 
-All user routes are prefixed with `/user`. Protected routes require `session-id` header.
+| Method | Endpoint       | Auth | Description        |
+| ------ | -------------- | ---- | ------------------ |
+| POST   | `/user/signup` | No   | Register user      |
+| POST   | `/user/login`  | No   | Login, returns JWT |
+| GET    | `/user`        | Yes  | Get current user   |
+| PATCH  | `/user`        | Yes  | Update user        |
 
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| `POST` | `/user/signup` | No | Register a new user |
-| `POST` | `/user/login` | No | Login, returns `sessionId` |
-| `GET` | `/user/` | Yes | Get current logged-in user |
-| `PATCH` | `/user/` | Yes | Update name, email or password |
+Protected routes require `Authorization: Bearer <token>` header.
 
-### Signup
-```json
-{ "name": "John", "email": "john@example.com", "password": "secret" }
-```
-
-### Login
-```json
-{ "email": "john@example.com", "password": "secret" }
-```
-Returns `sessionId` — use it as `session-id` header for protected routes.
-
-### Update User
-```json
-{ "name": "New Name", "email": "new@email.com" }
-```
-To update password, include `currentPassword`:
-```json
-{ "password": "newpass", "currentPassword": "oldpass" }
-```
-
-## Project Structure
+## Auth Flow
 
 ```
-├── index.js              # Express app + global middleware
-├── controllers/          # Route handlers (signup, login, update)
-├── routes/               # Route definitions
-├── middleware/            # attachUser, isAuthenticated
-├── db/
-│   ├── index.js          # Drizzle DB connection
-│   └── schema.js         # users + user_sessions tables
-├── docker-compose.yml    # PostgreSQL container
-└── .env                  # DB url + port
+Request → attachUser (global, parses token) → isAuthenticated (per-route guard) → Controller
 ```
 
-## How It Works
+- Passwords hashed with Argon2
+- Login returns a signed JWT with `{ id, email, name }`
+- `attachUser` runs on every request, decodes the token into `req.user`
+- `isAuthenticated` rejects with 401 if `req.user` is missing
 
-- Passwords are hashed with **Argon2id** (salt is embedded in the hash, no separate column needed)
-- On login, any existing sessions for the user are deleted and a new session is created — only one active session per user at a time
-- The `attachUser` middleware runs on every request — if a valid `session-id` header is present, it joins `user_sessions` with `users` and attaches the user to `req.user`
-- Protected routes use `isAuthenticated` middleware which returns 401 if `req.user` is not set
+## Scripts
+
+```bash
+pnpm dev          # Dev server (watch mode)
+pnpm start        # Production
+pnpm drizzle-kit push      # Push schema to DB
+pnpm drizzle-kit studio    # Drizzle Studio
+```
 
